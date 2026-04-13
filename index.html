@@ -295,7 +295,7 @@ const LS_SUPA_KEY  = "lm_supa_key";
 const LS_GEMINI    = "lm_gemini";
 const MAX          = 500000;
 const LANGS        = ["English","Hindi","Dutch","Spanish","German","French","Japanese","Custom"];
-const MODELS       = ["gemini-1.5-flash","gemini-1.5-pro","gemini-1.0-pro"];
+const MODELS       = ["gemini-2.0-flash","gemini-1.5-pro-latest","gemini-1.0-pro-latest"];
 
 /* ─── Supabase client (created lazily) ─── */
 let sbClient = null;
@@ -337,7 +337,7 @@ async function callGemini(logText, lang, model) {
   const raw = (d.candidates?.[0]?.content?.parts?.[0]?.text||"").replace(/```json|```/g,"").trim();
   if(!raw) throw new Error("Gemini returned empty response. Try again.");
   try{return JSON.parse(raw);}
-  catch{throw new Error("AI returned invalid JSON. Try again or use gemini-1.5-flash.");}
+  catch{throw new Error("AI returned invalid JSON. Try again or use gemini-2.0-flash.");}
 }
 
 /* ─── Export ─── */
@@ -796,7 +796,7 @@ function App(){
   const [loading,setLoading]     = useState(false);
   const [lang,setLang]           = useState("English");
   const [customLang,setCustomLang] = useState("");
-  const [model,setModel]         = useState("gemini-1.5-flash");
+  const [model,setModel]         = useState("gemini-2.0-flash");
   const [copied,setCopied]       = useState(null);
   const [delTarget,setDelTarget] = useState(null);
   const [delBusy,setDelBusy]     = useState(false);

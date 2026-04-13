@@ -7,676 +7,1074 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
 <style>
-:root {
-  --bg: #06080d;
-  --surface: #0d1117;
-  --surface2: #161b24;
-  --border: rgba(255,255,255,0.07);
-  --accent: #00e5ff;
-  --accent2: #7c3aed;
-  --accent3: #10b981;
-  --warn: #f59e0b;
-  --danger: #ef4444;
-  --text: #e2e8f0;
-  --muted: #64748b;
-  --subtle: #1e2533;
-}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:'IBM Plex Mono',monospace;min-height:100vh;overflow-x:hidden}
-body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -20%,rgba(0,229,255,0.06),transparent),radial-gradient(ellipse 60% 40% at 80% 80%,rgba(124,58,237,0.05),transparent);pointer-events:none;z-index:0}
-
-/* Scrollbar */
-::-webkit-scrollbar{width:4px;height:4px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--accent2);border-radius:2px}
+:root{
+  --bg:#0a0a0a;--sb:#111111;--surf:#1a1a1a;--surf2:#222222;
+  --bdr:#2a2a2a;--bdr2:#333333;
+  --accent:#00d4ff;--green:#22c55e;--red:#ef4444;--yellow:#f59e0b;--purple:#a855f7;
+  --tx:#f0f0f0;--tx2:#a0a0a0;--tx3:#505050;
+  --fn:'Geist Mono',monospace;
+}
+html,body,#root{height:100%;overflow:hidden}
+body{font-family:var(--fn);background:var(--bg);color:var(--tx);font-size:13px;line-height:1.5}
+input,textarea,select,button{font-family:var(--fn)}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#333;border-radius:2px}
+a{color:var(--accent)}
 
 /* Animations */
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes spin{to{transform:rotate(360deg)}}
-@keyframes pulse{0%,100%{opacity:.4;transform:scale(.85)}50%{opacity:1;transform:scale(1.1)}}
-@keyframes scanline{0%{transform:translateY(-100%)}100%{transform:translateY(100vh)}}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-@keyframes glowPulse{0%,100%{box-shadow:0 0 8px rgba(0,229,255,0.2)}50%{box-shadow:0 0 20px rgba(0,229,255,0.5)}}
+@keyframes dot{0%,100%{opacity:.3;transform:scale(.7)}50%{opacity:1;transform:scale(1.1)}}
+@keyframes glow{0%,100%{box-shadow:0 0 8px rgba(0,212,255,.2)}50%{box-shadow:0 0 22px rgba(0,212,255,.5)}}
 
-.fade-up{animation:fadeUp .4s ease both}
-.fade-up-1{animation:fadeUp .4s .1s ease both}
-.fade-up-2{animation:fadeUp .4s .2s ease both}
-.fade-up-3{animation:fadeUp .4s .3s ease both}
-.spin{animation:spin .8s linear infinite}
-.pulse-dot{animation:pulse 1.4s ease-in-out infinite}
-.blink{animation:blink 1s step-end infinite}
-.shimmer-bg{background:linear-gradient(90deg,var(--surface) 25%,var(--surface2) 50%,var(--surface) 75%);background-size:200% 100%;animation:shimmer 1.8s infinite}
-.glow-anim{animation:glowPulse 2s ease-in-out infinite}
+.fu{animation:fadeUp .4s ease both}
+.fi{animation:fadeIn .3s ease both}
+.spin{animation:spin .7s linear infinite}
+.da{animation:dot 1.2s ease-in-out infinite}
+.db{animation:dot 1.2s .18s ease-in-out infinite}
+.dc{animation:dot 1.2s .36s ease-in-out infinite}
 
-/* Grid bg */
-.grid-bg{background-image:linear-gradient(rgba(0,229,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,0.03) 1px,transparent 1px);background-size:40px 40px}
+/* ── SETUP SCREEN ── */
+.setup{height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
+  background:var(--bg);background-image:radial-gradient(ellipse 70% 50% at 50% -10%,rgba(0,212,255,.08),transparent)}
+.setup-card{width:100%;max-width:500px;background:var(--surf);border:1px solid var(--bdr);
+  border-radius:18px;padding:32px;animation:fadeUp .5s ease}
+.setup-logo{display:flex;align-items:center;gap:10;margin-bottom:24px;justify-content:center}
+.logo-icon{width:36px;height:36px;border-radius:10px;
+  background:linear-gradient(135deg,var(--accent),#0284c7);
+  display:flex;align-items:center;justify-content:center;font-size:17px;
+  animation:glow 2s ease-in-out infinite}
+.logo-text{font-family:'Syne',sans-serif;font-weight:800;font-size:18px}
+.setup-title{font-family:'Syne',sans-serif;font-weight:700;font-size:16px;margin-bottom:4px;text-align:center}
+.setup-sub{font-size:11px;color:var(--tx2);text-align:center;margin-bottom:24px;line-height:1.7}
+.setup-step{background:var(--surf2);border:1px solid var(--bdr2);border-radius:10px;padding:14px 16px;margin-bottom:12px}
+.setup-step-title{font-size:11px;font-weight:600;color:var(--tx);margin-bottom:6px;display:flex;align-items:center;gap:6}
+.setup-step-body{font-size:10px;color:var(--tx2);line-height:1.8}
+.setup-step-body code{background:rgba(0,212,255,.08);color:var(--accent);padding:1px 6px;border-radius:3px;font-size:10px}
+.setup-field{margin-bottom:12px}
+.setup-label{font-size:9px;color:var(--tx3);letter-spacing:.14em;text-transform:uppercase;display:block;margin-bottom:5px}
+.setup-input{width:100%;background:var(--surf2);border:1px solid var(--bdr2);color:var(--tx);
+  font-size:11px;padding:9px 12px;border-radius:8px;outline:none;transition:border .2s}
+.setup-input:focus{border-color:rgba(0,212,255,.4);box-shadow:0 0 0 3px rgba(0,212,255,.06)}
+.setup-input::placeholder{color:var(--tx3)}
+.setup-btn{width:100%;padding:11px;background:linear-gradient(135deg,var(--accent),#0284c7);
+  border:none;border-radius:8px;color:#000;font-size:12px;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .2s;margin-top:4px}
+.setup-btn:hover{opacity:.9;box-shadow:0 0 16px rgba(0,212,255,.3)}
+.setup-btn:disabled{background:var(--surf2);color:var(--tx3);cursor:not-allowed}
+.setup-err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:7px;
+  padding:9px 12px;font-size:11px;color:#fca5a5;margin-bottom:12px}
+.sql-box{background:var(--bg);border:1px solid var(--bdr2);border-radius:6px;
+  padding:10px;font-size:10px;color:#86efac;white-space:pre;overflow-x:auto;margin-top:6px;line-height:1.7}
 
-/* Components */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;position:relative;overflow:hidden}
-.card::before{content:'';position:absolute;inset:0;border-radius:16px;padding:1px;background:linear-gradient(135deg,rgba(0,229,255,0.1),transparent,rgba(124,58,237,0.1));-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+/* ── AUTH PAGE ── */
+.auth-page{height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
+  background:var(--bg);background-image:radial-gradient(ellipse 70% 50% at 50% -10%,rgba(0,212,255,.07),transparent)}
+.auth-card{width:100%;max-width:380px;background:var(--surf);border:1px solid var(--bdr);
+  border-radius:18px;padding:32px;animation:fadeUp .4s ease}
+.auth-logo{display:flex;align-items:center;gap:10;margin-bottom:24px;justify-content:center}
+.auth-title{font-family:'Syne',sans-serif;font-weight:700;font-size:19px;text-align:center;margin-bottom:4px}
+.auth-sub{font-size:11px;color:var(--tx2);text-align:center;margin-bottom:22px;line-height:1.65}
+.field-label{font-size:9px;color:var(--tx3);letter-spacing:.13em;text-transform:uppercase;display:block;margin-bottom:5px}
+.field-input{width:100%;background:var(--surf2);border:1px solid var(--bdr2);color:var(--tx);
+  font-size:12px;padding:10px 13px;border-radius:8px;outline:none;transition:border .2s;margin-bottom:13px}
+.field-input:focus{border-color:rgba(0,212,255,.4);box-shadow:0 0 0 3px rgba(0,212,255,.06)}
+.field-input::placeholder{color:var(--tx3)}
+.auth-btn{width:100%;padding:11px;background:linear-gradient(135deg,var(--accent),#0284c7);
+  border:none;border-radius:8px;color:#000;font-size:12px;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .2s;margin-bottom:14px}
+.auth-btn:hover:not(:disabled){opacity:.9;box-shadow:0 0 14px rgba(0,212,255,.3)}
+.auth-btn:disabled{background:var(--surf2);color:var(--tx3);cursor:not-allowed}
+.auth-switch{text-align:center;font-size:11px;color:var(--tx2)}
+.auth-switch span{color:var(--accent);cursor:pointer;text-decoration:underline}
+.msg-err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:7px;
+  padding:9px 12px;font-size:11px;color:#fca5a5;margin-bottom:12px}
+.msg-ok{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);border-radius:7px;
+  padding:9px 12px;font-size:11px;color:#86efac;margin-bottom:12px}
 
-.btn-primary{background:linear-gradient(135deg,var(--accent),#0891b2);color:#000;font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:11px;letter-spacing:.15em;text-transform:uppercase;border:none;border-radius:10px;padding:12px 28px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
-.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,229,255,0.3)}
-.btn-primary:active{transform:translateY(0)}
-.btn-primary:disabled{background:var(--surface2);color:var(--muted);cursor:not-allowed;transform:none;box-shadow:none}
+/* ── APP LAYOUT ── */
+.app{display:flex;height:100vh;overflow:hidden}
 
-.btn-ghost{background:transparent;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;border:1px solid var(--border);border-radius:8px;padding:8px 16px;cursor:pointer;transition:all .2s}
-.btn-ghost:hover{border-color:rgba(0,229,255,0.3);color:var(--accent);background:rgba(0,229,255,0.05)}
+/* ── SIDEBAR ── */
+.sidebar{width:256px;background:var(--sb);border-right:1px solid var(--bdr);
+  display:flex;flex-direction:column;flex-shrink:0}
+.sb-hd{padding:14px 16px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:10}
+.sb-li{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#0284c7);
+  display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 0 10px rgba(0,212,255,.2)}
+.sb-ln{font-family:'Syne',sans-serif;font-weight:800;font-size:15px}
+.sb-ls{font-size:9px;color:var(--tx3);letter-spacing:.14em;text-transform:uppercase}
+.sb-new{margin:10px 12px;display:flex;align-items:center;gap:7;padding:9px 12px;
+  border:1px dashed var(--bdr2);border-radius:8px;color:var(--tx3);
+  font-size:11px;cursor:pointer;background:transparent;width:calc(100% - 24px);transition:all .2s;letter-spacing:.04em}
+.sb-new:hover{border-color:rgba(0,212,255,.3);color:var(--accent);background:rgba(0,212,255,.04)}
+.sb-sec{padding:10px 14px 3px;font-size:9px;color:var(--tx3);letter-spacing:.14em;text-transform:uppercase}
+.sb-list{flex:1;overflow-y:auto;padding:4px 8px}
+.sb-empty{padding:14px 10px;font-size:10px;color:var(--tx3);line-height:1.8}
+.sb-item{display:flex;align-items:center;gap:7;padding:8px 10px;border-radius:7px;
+  cursor:pointer;font-size:11px;color:var(--tx2);transition:all .15s;margin-bottom:1px;position:relative}
+.sb-item:hover{background:var(--surf);color:var(--tx)}
+.sb-item.active{background:var(--surf2);color:var(--tx)}
+.sb-item-txt{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sb-del{opacity:0;font-size:10px;color:var(--red);padding:2px 5px;border-radius:3px;
+  border:none;background:transparent;cursor:pointer;flex-shrink:0;transition:opacity .15s}
+.sb-item:hover .sb-del{opacity:1}
+.sb-shared{font-size:8px;background:rgba(0,212,255,.08);color:var(--accent);
+  border:1px solid rgba(0,212,255,.18);border-radius:3px;padding:1px 5px;flex-shrink:0}
+.sb-bot{border-top:1px solid var(--bdr);padding:12px}
+.sb-user{display:flex;align-items:center;gap:8;margin-bottom:10px;padding:8px 10px;
+  background:var(--surf2);border-radius:8px}
+.sb-av{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#0284c7);
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#000;flex-shrink:0}
+.sb-em{font-size:10px;color:var(--tx2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sb-lo{font-size:9px;background:transparent;border:1px solid var(--bdr2);color:var(--tx3);
+  padding:3px 8px;border-radius:4px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.sb-lo:hover{border-color:rgba(239,68,68,.3);color:var(--red)}
+.sb-lbl{font-size:9px;color:var(--tx3);letter-spacing:.13em;text-transform:uppercase;display:block;margin-bottom:5px}
+.sb-sel{width:100%;background:var(--surf2);border:1px solid var(--bdr);color:var(--tx);
+  font-size:11px;padding:7px 10px;border-radius:7px;outline:none;cursor:pointer;
+  transition:border .2s;margin-bottom:8px}
+.sb-sel:focus{border-color:rgba(0,212,255,.35)}
+.sb-note{font-size:9px;color:var(--tx3);line-height:1.8}
 
-.tag{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;padding:3px 10px;border-radius:4px}
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.main-hd{padding:13px 20px;border-bottom:1px solid var(--bdr);
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:10}
+.main-title{font-size:12px;font-weight:600;display:flex;align-items:center;gap:8;
+  flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.pills{display:flex;gap:6;flex-shrink:0}
+.pill{font-size:9px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+  padding:3px 9px;border-radius:4px;white-space:nowrap}
+.p-green{background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.2)}
+.p-blue{background:rgba(0,212,255,.08);color:var(--accent);border:1px solid rgba(0,212,255,.15)}
+.p-purple{background:rgba(168,85,247,.1);color:var(--purple);border:1px solid rgba(168,85,247,.2)}
 
-textarea,select,input{font-family:'IBM Plex Mono',monospace;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:10px;transition:all .2s;outline:none}
-textarea:focus,select:focus,input:focus{border-color:rgba(0,229,255,0.4);box-shadow:0 0 0 3px rgba(0,229,255,0.08)}
-textarea::placeholder{color:var(--muted)}
+/* ── MESSAGES ── */
+.msgs{flex:1;overflow-y:auto;padding:24px 0}
+.msgs-inner{max-width:740px;margin:0 auto;padding:0 20px}
+.empty{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px}
+.empty-g{font-size:38px;margin-bottom:14px;opacity:.5}
+.empty-h{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;margin-bottom:7px}
+.empty-p{font-size:11px;color:var(--tx2);line-height:1.8;max-width:400px;margin-bottom:26px}
+.sg-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;max-width:480px}
+.sg-card{background:var(--surf);border:1px solid var(--bdr);border-radius:10px;
+  padding:13px 14px;text-align:left;cursor:pointer;transition:all .2s}
+.sg-card:hover{border-color:rgba(0,212,255,.25);background:var(--surf2)}
+.sg-icon{font-size:18px;margin-bottom:7px}
+.sg-title{font-size:11px;font-weight:600;color:var(--tx);margin-bottom:2px}
+.sg-sub{font-size:10px;color:var(--tx3);line-height:1.5}
 
-.section-toggle{background:transparent;border:none;width:100%;text-align:left;cursor:pointer;color:var(--text);font-family:'IBM Plex Mono',monospace;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;transition:background .2s}
-.section-toggle:hover{background:rgba(255,255,255,0.02)}
+/* Message rows */
+.row{margin-bottom:22px;animation:fadeIn .25s ease both}
+.row.user{display:flex;justify-content:flex-end}
+.row.ai{display:flex;gap:10;align-items:flex-start}
+.av{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.av-ai{background:linear-gradient(135deg,var(--accent),#0284c7);box-shadow:0 0 8px rgba(0,212,255,.18)}
+.bub-user{max-width:82%;background:#1d4ed8;color:#fff;border-radius:12px;border-bottom-right-radius:3px;padding:13px 15px;font-size:12.5px;line-height:1.7}
+.bub-user-label{font-size:10px;color:rgba(255,255,255,.5);margin-bottom:6px;letter-spacing:.04em}
+.bub-user pre{background:rgba(0,0,0,.25);border-radius:6px;padding:9px;font-size:10.5px;
+  overflow-x:auto;white-space:pre-wrap;word-break:break-all;border:1px solid rgba(255,255,255,.1);margin-top:6px}
+.bub-ai{background:var(--surf);border:1px solid var(--bdr);border-radius:12px;border-bottom-left-radius:3px;padding:14px 16px;width:100%;font-size:12px}
+.bub-err{background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.25);border-radius:12px;border-bottom-left-radius:3px;padding:12px 15px}
+.thinking{display:flex;align-items:center;gap:6;padding:12px 15px;background:var(--surf);
+  border:1px solid var(--bdr);border-radius:12px;border-bottom-left-radius:3px;font-size:11px;color:var(--tx3)}
+.td{width:6px;height:6px;border-radius:50%;background:var(--accent)}
 
-/* Issue types */
-.issue-error{border-left:3px solid var(--danger);background:rgba(239,68,68,0.06)}
-.issue-warning{border-left:3px solid var(--warn);background:rgba(245,158,11,0.06)}
-.issue-suspicious{border-left:3px solid #a855f7;background:rgba(168,85,247,0.06)}
-.issue-info{border-left:3px solid var(--accent);background:rgba(0,229,255,0.06)}
+/* Analysis sections */
+.sec{margin-bottom:14px}
+.sec:last-child{margin-bottom:0}
+.sec-lbl{font-size:9px;letter-spacing:.17em;text-transform:uppercase;color:var(--tx3);
+  margin-bottom:8px;display:flex;align-items:center;gap:6}
+.sec-lbl::after{content:'';flex:1;height:1px;background:var(--bdr)}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:5px}
+.chip{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;padding:3px 9px;border-radius:4px}
+.ch-crit{background:rgba(239,68,68,.13);color:#fca5a5;border:1px solid rgba(239,68,68,.22)}
+.ch-high{background:rgba(249,115,22,.13);color:#fdba74;border:1px solid rgba(249,115,22,.22)}
+.ch-med{background:rgba(245,158,11,.13);color:#fcd34d;border:1px solid rgba(245,158,11,.22)}
+.ch-low{background:rgba(34,197,94,.13);color:#86efac;border:1px solid rgba(34,197,94,.22)}
+.ch-conf{background:rgba(0,212,255,.09);color:var(--accent);border:1px solid rgba(0,212,255,.18)}
+.ch-tech{background:var(--surf2);color:var(--tx2);border:1px solid var(--bdr2);font-size:9px;padding:2px 7px;font-weight:400;text-transform:none;letter-spacing:0}
+.issue{border-radius:7px;padding:10px 12px;margin-bottom:6px}
+.ie{background:rgba(239,68,68,.07);border-left:2.5px solid var(--red)}
+.iw{background:rgba(245,158,11,.07);border-left:2.5px solid var(--yellow)}
+.is{background:rgba(168,85,247,.07);border-left:2.5px solid var(--purple)}
+.ii{background:rgba(0,212,255,.07);border-left:2.5px solid var(--accent)}
+.i-hd{display:flex;align-items:center;gap:6;margin-bottom:3px}
+.i-tp{font-size:9px;font-weight:700;letter-spacing:.11em;text-transform:uppercase}
+.i-tl{font-size:11px;font-weight:600}
+.i-ds{font-size:11px;color:var(--tx2);line-height:1.6}
+.i-cd{margin-top:6px;background:rgba(0,0,0,.5);border-radius:5px;padding:6px 10px;font-size:10px;color:#86efac;white-space:pre-wrap;word-break:break-all;overflow-x:auto}
+.step{display:flex;gap:10px;margin-bottom:12px}
+.step-n{width:22px;height:22px;border-radius:50%;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.22);color:var(--accent);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-t{font-size:11px;font-weight:600;margin-bottom:2px}
+.step-d{font-size:11px;color:var(--tx2);line-height:1.65}
+.fix{border-radius:7px;padding:9px 12px;margin-bottom:6px;border:1px solid transparent}
+.fi{background:rgba(239,68,68,.06);border-color:rgba(239,68,68,.18)}
+.fs{background:rgba(245,158,11,.06);border-color:rgba(245,158,11,.18)}
+.fl{background:rgba(34,197,94,.06);border-color:rgba(34,197,94,.18)}
+.fix-p{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
+.fix-a{font-size:11px;font-weight:600;margin-bottom:2px}
+.fix-r{font-size:10px;color:var(--tx2)}
+.prev-i{display:flex;gap:8px;font-size:11px;color:var(--tx2);margin-bottom:7px;line-height:1.6}
+.susp-i{display:flex;gap:8px;font-size:11px;color:#d8b4fe;margin-bottom:5px;background:rgba(168,85,247,.07);border:1px solid rgba(168,85,247,.14);border-radius:5px;padding:7px 10px}
 
-/* Impact colors */
-.impact-critical{background:rgba(239,68,68,0.15);color:#fca5a5;border:1px solid rgba(239,68,68,0.3)}
-.impact-high{background:rgba(249,115,22,0.15);color:#fdba74;border:1px solid rgba(249,115,22,0.3)}
-.impact-medium{background:rgba(245,158,11,0.15);color:#fcd34d;border:1px solid rgba(245,158,11,0.3)}
-.impact-low{background:rgba(16,185,129,0.15);color:#6ee7b7;border:1px solid rgba(16,185,129,0.3)}
+/* Export */
+.exp-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;padding-top:12px;border-top:1px solid var(--bdr)}
+.exp-btn{font-size:10px;letter-spacing:.05em;padding:5px 11px;border-radius:6px;cursor:pointer;border:1px solid var(--bdr2);background:var(--surf2);color:var(--tx2);transition:all .2s}
+.exp-btn:hover{border-color:rgba(0,212,255,.28);color:var(--accent)}
+.exp-btn.copied{border-color:rgba(34,197,94,.3);color:var(--green)}
+.exp-btn.share-on{border-color:rgba(168,85,247,.3);color:var(--purple);background:rgba(168,85,247,.07)}
 
-/* Ollama status */
-.status-online{color:var(--accent3)}
-.status-offline{color:var(--danger)}
-.status-checking{color:var(--warn)}
+/* Share box */
+.share-box{margin-top:10px;background:var(--surf2);border:1px solid rgba(168,85,247,.22);border-radius:8px;padding:10px 12px}
+.share-row{display:flex;gap:6px;margin-top:6px}
+.share-row input{flex:1;background:var(--bg);border:1px solid var(--bdr2);color:var(--tx2);font-size:10px;padding:6px 10px;border-radius:6px;outline:none}
+.share-row button{font-size:10px;padding:5px 10px;border-radius:6px;border:1px solid rgba(168,85,247,.3);background:rgba(168,85,247,.1);color:var(--purple);cursor:pointer}
 
-/* Terminal cursor */
-.cursor::after{content:'█';animation:blink 1s step-end infinite;color:var(--accent);margin-left:2px}
+/* Input */
+.inp-area{border-top:1px solid var(--bdr);padding:14px 20px 16px;flex-shrink:0;background:var(--bg)}
+.inp-inner{max-width:740px;margin:0 auto}
+.lang-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.lang-btn{font-size:10px;letter-spacing:.06em;padding:4px 10px;border-radius:5px;cursor:pointer;border:1px solid var(--bdr2);background:transparent;color:var(--tx3);transition:all .15s}
+.lang-btn:hover{border-color:rgba(0,212,255,.25);color:var(--accent)}
+.lang-btn.on{border-color:rgba(0,212,255,.38);color:var(--accent);background:rgba(0,212,255,.07)}
+.lang-custom{background:var(--surf2);border:1px solid var(--bdr2);color:var(--tx);font-size:10px;padding:4px 10px;border-radius:5px;outline:none;width:110px}
+.inp-box{display:flex;background:var(--surf);border:1px solid var(--bdr2);border-radius:12px;overflow:hidden;transition:border .2s}
+.inp-box:focus-within{border-color:rgba(0,212,255,.32);box-shadow:0 0 0 3px rgba(0,212,255,.05)}
+.inp-ta{flex:1;background:transparent;border:none;color:var(--tx);font-size:12px;padding:13px 15px;resize:none;outline:none;line-height:1.65;max-height:200px;min-height:50px}
+.inp-ta::placeholder{color:var(--tx3)}
+.inp-ta:disabled{opacity:.5}
+.inp-side{display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;padding:8px 10px;border-left:1px solid var(--bdr);gap:6px}
+.send-btn{width:32px;height:32px;border-radius:7px;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#000;transition:all .2s;flex-shrink:0}
+.send-btn:hover:not(:disabled){background:#00bbdd;box-shadow:0 0 10px rgba(0,212,255,.28)}
+.send-btn:disabled{background:#1a3040;color:#2a4050;cursor:not-allowed}
+.up-btn{width:26px;height:26px;border-radius:5px;border:1px solid var(--bdr2);background:transparent;color:var(--tx3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .2s}
+.up-btn:hover{border-color:rgba(0,212,255,.28);color:var(--accent)}
+.cc{font-size:9px;color:var(--tx3)}
+.inp-hint{font-size:9.5px;color:var(--tx3);text-align:center;margin-top:8px}
 
-/* Noise texture overlay */
-.noise::after{content:'';position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");opacity:.4;pointer-events:none;border-radius:inherit}
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:var(--surf);border:1px solid var(--bdr);border-radius:14px;padding:24px;max-width:400px;width:100%;animation:fadeUp .3s ease}
+.modal-t{font-size:14px;font-weight:700;margin-bottom:6px}
+.modal-s{font-size:11px;color:var(--tx2);margin-bottom:18px;line-height:1.6}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end}
+.mbtn{font-size:11px;padding:8px 16px;border-radius:7px;cursor:pointer;transition:all .2s;border:1px solid var(--bdr2);background:transparent;color:var(--tx2)}
+.mbtn:hover{border-color:#555;color:var(--tx)}
+.mbtn.danger{background:var(--red);border-color:var(--red);color:#fff;font-weight:700}
+.mbtn.danger:hover{opacity:.85}
+.mbtn:disabled{opacity:.5;cursor:not-allowed}
+
+/* Shared banner */
+.shared-banner{background:rgba(168,85,247,.08);border-bottom:1px solid rgba(168,85,247,.2);padding:8px 20px;font-size:11px;color:var(--purple);display:flex;align-items:center;gap:8;flex-shrink:0}
+
+/* Loader */
+.loader{height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+
+@media(max-width:640px){.sidebar{display:none}.sg-grid{grid-template-columns:1fr}}
 </style>
 </head>
-<body class="grid-bg">
-<div id="root"></div>
+<body>
+<div id="root">
+  <!-- Fallback if React fails to load -->
+  <div style="display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:12px;color:#606060;font-family:monospace;font-size:12px">
+    <div>⏳ Loading LogMind…</div>
+  </div>
+</div>
+
 <script type="text/babel">
+const {useState,useEffect,useRef,useCallback,useMemo} = React;
 
-const { useState, useEffect, useRef, useCallback } = React;
+/* ─── Config keys stored in localStorage ─── */
+const LS_SUPA_URL  = "lm_supa_url";
+const LS_SUPA_KEY  = "lm_supa_key";
+const LS_GEMINI    = "lm_gemini";
+const MAX          = 500000;
+const LANGS        = ["English","Hindi","Dutch","Spanish","German","French","Japanese","Custom"];
+const MODELS       = ["gemini-1.5-flash","gemini-1.5-pro","gemini-1.0-pro"];
 
-const MAX = 100000;
-const LANGS = [
-  {code:"English",label:"EN — English"},
-  {code:"Hindi",label:"HI — Hindi"},
-  {code:"Dutch",label:"NL — Dutch"},
-  {code:"Spanish",label:"ES — Spanish"},
-  {code:"German",label:"DE — German"},
-  {code:"French",label:"FR — French"},
-  {code:"Japanese",label:"JA — Japanese"},
-  {code:"custom",label:"✎ — Custom"},
-];
-
-const MODELS = [
-  "llama3","llama3.2","llama3.1","mistral","mixtral","gemma2","codellama","phi3","deepseek-r1","qwen2.5"
-];
-
-const SYSTEM = `You are a Senior DevOps Engineer, Site Reliability Engineer, and Production Support Engineer with 15+ years of experience. You analyze ALL types of logs: server, application, payment, security, CI/CD, cloud, container, database logs.
-
-STRICT RULES:
-- Never hallucinate. If uncertain, explicitly say so.
-- Be beginner-friendly but technically precise.
-- Respond FULLY in the language requested.
-- Return ONLY a valid JSON object. No markdown, no explanation outside JSON.
-
-JSON schema (follow exactly):
-{
-  "summary": "2-3 sentence overview",
-  "technologiesDetected": ["array of strings"],
-  "impactLevel": "Low|Medium|High|Critical",
-  "impactReason": "why this level",
-  "confidenceLevel": "Low|Medium|High",
-  "confidenceReason": "why this confidence",
-  "keyIssues": [
-    {"type":"error|warning|info|suspicious","title":"string","description":"string","lineHint":"string or null"}
-  ],
-  "rootCause": "most likely root cause",
-  "stepByStep": [{"step":1,"title":"string","detail":"string"}],
-  "suggestedFixes": [{"priority":"Immediate|Short-term|Long-term","action":"string","reason":"string"}],
-  "preventiveRecommendations": ["string"],
-  "timeline": "reconstructed sequence or null",
-  "suspiciousPatterns": ["string or empty array"]
-}`;
-
-// ── Ollama API ──────────────────────────────────────────────────────────────
-
-async function checkOllama(host) {
+/* ─── Supabase client (created lazily) ─── */
+let sbClient = null;
+function getSB() {
+  if(sbClient) return sbClient;
+  const url = localStorage.getItem(LS_SUPA_URL)||"";
+  const key = localStorage.getItem(LS_SUPA_KEY)||"";
+  if(!url||!key) return null;
   try {
-    const r = await fetch(`${host}/api/tags`, {signal: AbortSignal.timeout(3000)});
-    if (!r.ok) return {ok:false, models:[]};
-    const d = await r.json();
-    return {ok:true, models: (d.models||[]).map(m=>m.name)};
-  } catch { return {ok:false, models:[]}; }
+    sbClient = supabase.createClient(url, key);
+    return sbClient;
+  } catch(e) {
+    console.error("Supabase init error:", e);
+    return null;
+  }
 }
+function resetSB() { sbClient = null; }
 
-async function analyzeWithOllama(logs, lang, host, model) {
-  const prompt = `Analyze these logs. Respond FULLY in ${lang}. Return ONLY valid JSON.\n\nLOGS:\n${logs}`;
-  const res = await fetch(`${host}/api/generate`, {
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body: JSON.stringify({model, prompt, system: SYSTEM, stream:false, format:"json"})
-  });
-  if (!res.ok) throw new Error(`Ollama error: HTTP ${res.status}. Is Ollama running?`);
+/* ─── AI prompt ─── */
+const SYS = `You are LogMind, an expert AI log analysis assistant acting as a Senior DevOps Engineer, SRE and Production Support Engineer with 15+ years experience. Analyze ALL log types: server, application, payment (Stripe/PayPal/Razorpay), security, CI/CD, cloud (AWS/GCP/Azure), containers (Docker/Kubernetes), databases, and any custom format.
+
+RULES: Never hallucinate. Admit uncertainty. Be beginner-friendly. Respond fully in requested language. Return ONLY valid JSON — no markdown, no extra text.
+
+JSON schema:
+{"summary":"string","technologiesDetected":["string"],"impactLevel":"Low|Medium|High|Critical","impactReason":"string","confidenceLevel":"Low|Medium|High","confidenceReason":"string","keyIssues":[{"type":"error|warning|info|suspicious","title":"string","description":"string","lineHint":"string or null"}],"rootCause":"string","stepByStep":[{"step":1,"title":"string","detail":"string"}],"suggestedFixes":[{"priority":"Immediate|Short-term|Long-term","action":"string","reason":"string"}],"preventiveRecommendations":["string"],"timeline":"string or null","suspiciousPatterns":["string"]}`;
+
+/* ─── Gemini call ─── */
+async function callGemini(logText, lang, model) {
+  const key = localStorage.getItem(LS_GEMINI)||"";
+  if(!key) throw new Error("Gemini API key not set. Go to Settings.");
+  const prompt = `${SYS}\n\nAnalyze these logs. Respond entirely in ${lang}. Return ONLY valid JSON.\n\nLOGS:\n${logText}`;
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
+    {method:"POST",headers:{"Content-Type":"application/json"},
+     body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.2,maxOutputTokens:4096}})}
+  );
+  if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e?.error?.message||`Gemini HTTP ${res.status}`);}
   const d = await res.json();
-  const raw = (d.response||"").replace(/```json|```/g,"").trim();
-  try { return JSON.parse(raw); }
-  catch { throw new Error("AI returned invalid JSON. Try again or use a different model."); }
+  const raw = (d.candidates?.[0]?.content?.parts?.[0]?.text||"").replace(/```json|```/g,"").trim();
+  if(!raw) throw new Error("Gemini returned empty response. Try again.");
+  try{return JSON.parse(raw);}
+  catch{throw new Error("AI returned invalid JSON. Try again or use gemini-1.5-flash.");}
 }
 
-// ── Export ──────────────────────────────────────────────────────────────────
-
-function toText(r) {
-  return [
-    "LOGMIND — AI LOG ANALYSIS REPORT",
-    "=".repeat(52),
-    `\nSUMMARY\n${r.summary}`,
-    `\nIMPACT LEVEL : ${r.impactLevel}`,
-    `IMPACT REASON: ${r.impactReason}`,
-    `CONFIDENCE   : ${r.confidenceLevel} — ${r.confidenceReason}`,
-    `\nTECHNOLOGIES DETECTED\n${r.technologiesDetected?.join(", ")||"—"}`,
+/* ─── Export ─── */
+function toText(r){
+  return["LOGMIND — AI LOG ANALYSIS REPORT","=".repeat(50),
+    `\nSUMMARY\n${r.summary}`,`\nIMPACT: ${r.impactLevel} — ${r.impactReason}`,
+    `CONFIDENCE: ${r.confidenceLevel} — ${r.confidenceReason}`,
+    `\nTECHNOLOGIES: ${r.technologiesDetected?.join(", ")||"—"}`,
     `\nROOT CAUSE\n${r.rootCause}`,
     `\nKEY ISSUES\n${r.keyIssues?.map(i=>`  [${i.type.toUpperCase()}] ${i.title}\n  ${i.description}${i.lineHint?"\n  > "+i.lineHint:""}`).join("\n\n")||"None"}`,
-    `\nSTEP-BY-STEP EXPLANATION\n${r.stepByStep?.map(s=>`  Step ${s.step}: ${s.title}\n  ${s.detail}`).join("\n\n")||"—"}`,
-    `\nSUGGESTED FIXES\n${r.suggestedFixes?.map(f=>`  [${f.priority}] ${f.action}\n  ${f.reason}`).join("\n\n")||"—"}`,
-    `\nPREVENTIVE RECOMMENDATIONS\n${r.preventiveRecommendations?.map(p=>`  • ${p}`).join("\n")||"—"}`,
-    r.timeline ? `\nTIMELINE\n${r.timeline}` : "",
-    r.suspiciousPatterns?.length ? `\nSUSPICIOUS PATTERNS\n${r.suspiciousPatterns.map(p=>`  ⚠ ${p}`).join("\n")}` : "",
-    "\n" + "─".repeat(52),
-    "Generated by LogMind · Powered by Ollama (local AI) · No data stored.",
+    `\nSTEPS\n${r.stepByStep?.map(s=>`  ${s.step}. ${s.title}\n  ${s.detail}`).join("\n\n")||"—"}`,
+    `\nFIXES\n${r.suggestedFixes?.map(f=>`  [${f.priority}] ${f.action}\n  ${f.reason}`).join("\n\n")||"—"}`,
+    `\nPREVENTION\n${r.preventiveRecommendations?.map(p=>`  • ${p}`).join("\n")||"—"}`,
+    r.timeline?`\nTIMELINE\n${r.timeline}`:"",
+    r.suspiciousPatterns?.length?`\nSUSPICIOUS\n${r.suspiciousPatterns.map(p=>`  ⚠ ${p}`).join("\n")}`:"",
+    "\n"+"─".repeat(50),"Generated by LogMind · Gemini AI · Supabase",
   ].filter(Boolean).join("\n");
 }
 
-// ── Sub-components ──────────────────────────────────────────────────────────
+/* ════════════════════════════════════════════════
+   SETUP SCREEN
+   ════════════════════════════════════════════════ */
+const SQL_SNIPPET = `create table sessions (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references auth.users(id) on delete cascade,
+  title text not null,
+  messages jsonb default '[]',
+  is_shared boolean default false,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+alter table sessions enable row level security;
+create policy "own" on sessions for all using (auth.uid() = user_id);
+create policy "shared" on sessions for select using (is_shared = true);`;
 
-function OllamaStatus({status, models, onRefresh}) {
-  return (
-    <div style={{display:"flex",alignItems:"center",gap:8,fontSize:10,letterSpacing:".1em"}}>
-      <span className={`pulse-dot`} style={{width:6,height:6,borderRadius:"50%",display:"inline-block",
-        background: status==="online"?"#10b981":status==="offline"?"#ef4444":"#f59e0b"}}/>
-      <span className={`status-${status}`} style={{textTransform:"uppercase",fontWeight:600}}>
-        {status==="online"?`OLLAMA ONLINE · ${models.length} MODEL${models.length!==1?"S":""}`:
-         status==="offline"?"OLLAMA OFFLINE":
-         "CHECKING..."}
-      </span>
-      <button onClick={onRefresh} className="btn-ghost" style={{padding:"2px 8px",fontSize:9}}>↺</button>
-    </div>
-  );
-}
+function SetupScreen({onDone}){
+  const [supaUrl,setSupaUrl]  = useState(localStorage.getItem(LS_SUPA_URL)||"");
+  const [supaKey,setSupaKey]  = useState(localStorage.getItem(LS_SUPA_KEY)||"");
+  const [geminiKey,setGeminiKey] = useState(localStorage.getItem(LS_GEMINI)||"");
+  const [loading,setLoading]  = useState(false);
+  const [err,setErr]          = useState("");
+  const [step,setStep]        = useState(1); // 1=intro, 2=form
 
-function IssueCard({issue}) {
-  const cfg = {
-    error:  {cls:"issue-error",  icon:"✖", color:"#fca5a5", label:"ERROR"},
-    warning:{cls:"issue-warning",icon:"▲", color:"#fcd34d", label:"WARN"},
-    suspicious:{cls:"issue-suspicious",icon:"◈",color:"#d8b4fe",label:"SUSPECT"},
-    info:   {cls:"issue-info",   icon:"◆", color:"#67e8f9", label:"INFO"},
-  }[issue.type] || {cls:"issue-info",icon:"◆",color:"#67e8f9",label:"INFO"};
-
-  return (
-    <div className={cfg.cls} style={{borderRadius:8,padding:"12px 16px",marginBottom:8}}>
-      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
-        <span style={{color:cfg.color,fontSize:11}}>{cfg.icon}</span>
-        <span className="tag" style={{color:cfg.color,background:"transparent",border:`1px solid ${cfg.color}40`,padding:"2px 8px"}}>{cfg.label}</span>
-        <span style={{fontWeight:600,fontSize:12,color:"#e2e8f0"}}>{issue.title}</span>
-      </div>
-      <p style={{fontSize:12,color:"#94a3b8",lineHeight:1.6}}>{issue.description}</p>
-      {issue.lineHint && (
-        <code style={{display:"block",marginTop:8,fontSize:10,background:"rgba(0,0,0,0.4)",color:"#86efac",borderRadius:6,padding:"8px 12px",overflowX:"auto",whiteSpace:"pre-wrap",wordBreak:"break-all"}}>
-          {issue.lineHint}
-        </code>
-      )}
-    </div>
-  );
-}
-
-function Collapsible({title, icon, defaultOpen=false, accent=false, children}) {
-  const [open, setOpen] = useState(defaultOpen);
-  return (
-    <div className="card" style={{marginBottom:0}}>
-      <button className="section-toggle" onClick={()=>setOpen(!open)}>
-        <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <span style={{fontSize:14}}>{icon}</span>
-          <span style={{fontSize:12,fontWeight:600,letterSpacing:".08em",color: accent?"var(--accent)":"var(--text)"}}>{title}</span>
-        </div>
-        <span style={{color:"var(--muted)",fontSize:10,transform:open?"rotate(180deg)":"",transition:"transform .2s",display:"inline-block"}}>▼</span>
-      </button>
-      {open && (
-        <div style={{padding:"0 20px 20px",borderTop:"1px solid var(--border)"}}>
-          <div style={{paddingTop:16}}>{children}</div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function FixCard({fix}) {
-  const cfg = {
-    Immediate:{color:"#fca5a5",bg:"rgba(239,68,68,0.1)",border:"rgba(239,68,68,0.25)"},
-    "Short-term":{color:"#fcd34d",bg:"rgba(245,158,11,0.1)",border:"rgba(245,158,11,0.25)"},
-    "Long-term":{color:"#6ee7b7",bg:"rgba(16,185,129,0.1)",border:"rgba(16,185,129,0.25)"},
-  }[fix.priority] || {color:"#94a3b8",bg:"rgba(148,163,184,0.1)",border:"rgba(148,163,184,0.25)"};
-  return (
-    <div style={{background:cfg.bg,border:`1px solid ${cfg.border}`,borderRadius:8,padding:"12px 16px",marginBottom:8}}>
-      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
-        <span className="tag" style={{color:cfg.color,border:`1px solid ${cfg.border}`,background:"transparent"}}>{fix.priority}</span>
-        <span style={{fontSize:12,fontWeight:600}}>{fix.action}</span>
-      </div>
-      <p style={{fontSize:11,color:"#94a3b8"}}>{fix.reason}</p>
-    </div>
-  );
-}
-
-function StepItem({s}) {
-  return (
-    <div style={{display:"flex",gap:16,marginBottom:20}}>
-      <div style={{width:28,height:28,borderRadius:"50%",border:"1px solid rgba(0,229,255,0.3)",background:"rgba(0,229,255,0.08)",color:"var(--accent)",fontSize:11,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:2}}>
-        {s.step}
-      </div>
-      <div>
-        <div style={{fontSize:12,fontWeight:600,color:"#e2e8f0",marginBottom:4}}>{s.title}</div>
-        <div style={{fontSize:12,color:"#94a3b8",lineHeight:1.65}}>{s.detail}</div>
-      </div>
-    </div>
-  );
-}
-
-function ConfidenceMeter({level}) {
-  const map = {Low:1,Medium:2,High:3};
-  const n = map[level]||1;
-  return (
-    <div style={{display:"flex",alignItems:"center",gap:6}}>
-      {[1,2,3].map(i=>(
-        <div key={i} style={{width:20,height:4,borderRadius:2,background:i<=n?"var(--accent)":"var(--surface2)",transition:"background .3s"}}/>
-      ))}
-      <span style={{fontSize:10,color:"var(--muted)",marginLeft:4,letterSpacing:".1em"}}>{level?.toUpperCase()}</span>
-    </div>
-  );
-}
-
-function ImpactBadge({level}) {
-  const cls = `impact-${(level||"low").toLowerCase()}`;
-  return <span className={`tag ${cls}`} style={{borderRadius:6,padding:"4px 10px"}}>{level}</span>;
-}
-
-// ── Main App ────────────────────────────────────────────────────────────────
-
-function App() {
-  const [logs, setLogs] = useState("");
-  const [lang, setLang] = useState("English");
-  const [customLang, setCustomLang] = useState("");
-  const [ollamaHost, setOllamaHost] = useState("http://localhost:11434");
-  const [model, setModel] = useState("llama3");
-  const [availableModels, setAvailableModels] = useState([]);
-  const [ollamaStatus, setOllamaStatus] = useState("checking");
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
-  const [error, setError] = useState("");
-  const [copied, setCopied] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [charCount, setCharCount] = useState(0);
-  const fileRef = useRef();
-
-  const effLang = lang==="custom" ? customLang||"English" : lang;
-
-  // Check Ollama on load
-  const checkStatus = useCallback(async () => {
-    setOllamaStatus("checking");
-    const {ok, models} = await checkOllama(ollamaHost);
-    setOllamaStatus(ok?"online":"offline");
-    if (ok && models.length > 0) {
-      setAvailableModels(models);
-      setModel(models[0]);
+  const save = async () => {
+    setErr(""); setLoading(true);
+    if(!supaUrl.startsWith("https://")) { setErr("Supabase URL must start with https://"); setLoading(false); return; }
+    if(!supaKey.startsWith("eyJ"))       { setErr("Supabase anon key looks wrong. It should start with eyJ…"); setLoading(false); return; }
+    if(!geminiKey.startsWith("AIza"))    { setErr("Gemini API key looks wrong. It should start with AIza…"); setLoading(false); return; }
+    try {
+      // Test Supabase connection
+      resetSB();
+      localStorage.setItem(LS_SUPA_URL, supaUrl.trim());
+      localStorage.setItem(LS_SUPA_KEY, supaKey.trim());
+      localStorage.setItem(LS_GEMINI,   geminiKey.trim());
+      const sb = getSB();
+      const {error} = await sb.from("sessions").select("id").limit(1);
+      if(error && error.code !== "PGRST116") throw new Error("Supabase connection failed: " + error.message);
+      onDone();
+    } catch(e) {
+      setErr(e.message);
+      localStorage.removeItem(LS_SUPA_URL);
+      localStorage.removeItem(LS_SUPA_KEY);
+      localStorage.removeItem(LS_GEMINI);
+      resetSB();
     }
-  }, [ollamaHost]);
+    setLoading(false);
+  };
 
-  useEffect(()=>{ checkStatus(); }, []);
+  if(step===1) return(
+    <div className="setup">
+      <div className="setup-card">
+        <div className="setup-logo">
+          <div className="logo-icon">⬡</div>
+          <div>
+            <div className="logo-text">Log<span style={{color:"var(--accent)"}}>Mind</span></div>
+            <div style={{fontSize:9,color:"var(--tx3)",letterSpacing:".14em",textTransform:"uppercase"}}>First Time Setup</div>
+          </div>
+        </div>
+        <div className="setup-title">Welcome! Let's set up your app.</div>
+        <div className="setup-sub">You need 2 free accounts. Takes about 5 minutes total.</div>
+
+        <div className="setup-step">
+          <div className="setup-step-title"><span>1️⃣</span> Create Supabase project (free database + auth)</div>
+          <div className="setup-step-body">
+            Go to <a href="https://supabase.com" target="_blank">supabase.com</a> → New Project → wait for it to start<br/>
+            Then go to <b>Settings → API</b> and copy:<br/>
+            • <b>Project URL</b> (looks like <code>https://abc.supabase.co</code>)<br/>
+            • <b>anon / public key</b> (starts with <code>eyJ…</code>)<br/><br/>
+            Then go to <b>SQL Editor</b> and run this SQL:
+            <div className="sql-box">{SQL_SNIPPET}</div>
+          </div>
+        </div>
+
+        <div className="setup-step">
+          <div className="setup-step-title"><span>2️⃣</span> Get free Gemini API key (AI engine)</div>
+          <div className="setup-step-body">
+            Go to <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a><br/>
+            Sign in with Google → Create API Key → copy it (starts with <code>AIza…</code>)<br/>
+            Free tier: <b>1,500 requests/day · 1 million token context</b> (handles very long logs!)
+          </div>
+        </div>
+
+        <button className="setup-btn" onClick={()=>setStep(2)}>I have my keys → Continue</button>
+      </div>
+    </div>
+  );
+
+  return(
+    <div className="setup">
+      <div className="setup-card">
+        <div className="setup-logo">
+          <div className="logo-icon">⬡</div>
+          <div>
+            <div className="logo-text">Log<span style={{color:"var(--accent)"}}>Mind</span></div>
+            <div style={{fontSize:9,color:"var(--tx3)",letterSpacing:".14em",textTransform:"uppercase"}}>Enter Your Keys</div>
+          </div>
+        </div>
+
+        {err && <div className="setup-err">⚠ {err}</div>}
+
+        <div className="setup-field">
+          <label className="setup-label">Supabase Project URL</label>
+          <input className="setup-input" value={supaUrl} onChange={e=>setSupaUrl(e.target.value)} placeholder="https://xyzabc.supabase.co"/>
+        </div>
+        <div className="setup-field">
+          <label className="setup-label">Supabase Anon Key</label>
+          <input className="setup-input" value={supaKey} onChange={e=>setSupaKey(e.target.value)} placeholder="eyJhbGciOiJIUzI1NiIs…"/>
+        </div>
+        <div className="setup-field">
+          <label className="setup-label">Gemini API Key</label>
+          <input className="setup-input" value={geminiKey} onChange={e=>setGeminiKey(e.target.value)} placeholder="AIzaSy…"/>
+        </div>
+
+        <button className="setup-btn" onClick={save} disabled={loading||!supaUrl||!supaKey||!geminiKey}>
+          {loading
+            ?<span className="spin" style={{width:13,height:13,border:"2px solid rgba(0,0,0,.2)",borderTop:"2px solid #000",borderRadius:"50%",display:"inline-block"}}/>
+            :"Save & Connect →"}
+        </button>
+        <div style={{textAlign:"center",marginTop:10,fontSize:10,color:"var(--tx3)"}}>
+          🔒 Keys saved in your browser only. Never sent to any server.
+          <br/><span style={{color:"var(--accent)",cursor:"pointer"}} onClick={()=>setStep(1)}>← Back to instructions</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════
+   AUTH PAGE
+   ════════════════════════════════════════════════ */
+function AuthPage({onAuth}){
+  const [mode,setMode]   = useState("login");
+  const [email,setEmail] = useState("");
+  const [pass,setPass]   = useState("");
+  const [loading,setLoading] = useState(false);
+  const [err,setErr]     = useState("");
+  const [msg,setMsg]     = useState("");
+
+  const go = async () => {
+    setErr(""); setMsg(""); setLoading(true);
+    try {
+      const sb = getSB();
+      if(mode==="signup"){
+        const {error} = await sb.auth.signUp({email,password:pass});
+        if(error) throw error;
+        setMsg("✓ Check your email to confirm your account, then sign in.");
+        setMode("login");
+      } else if(mode==="login"){
+        const {data,error} = await sb.auth.signInWithPassword({email,password:pass});
+        if(error) throw error;
+        onAuth(data.user);
+      } else {
+        const {error} = await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.href});
+        if(error) throw error;
+        setMsg("✓ Password reset email sent.");
+      }
+    } catch(e){ setErr(e.message||"Something went wrong"); }
+    setLoading(false);
+  };
+
+  const onKey = e => { if(e.key==="Enter") go(); };
+
+  return(
+    <div className="auth-page">
+      <div className="auth-card">
+        <div className="auth-logo">
+          <div className="logo-icon">⬡</div>
+          <div>
+            <div className="logo-text">Log<span style={{color:"var(--accent)"}}>Mind</span></div>
+            <div style={{fontSize:9,color:"var(--tx3)",letterSpacing:".14em",textTransform:"uppercase"}}>AI Log Interpreter</div>
+          </div>
+        </div>
+        <div className="auth-title">
+          {mode==="login"?"Welcome back":mode==="signup"?"Create account":"Reset password"}
+        </div>
+        <div className="auth-sub">
+          {mode==="login"?"Sign in to access your saved log analyses."
+          :mode==="signup"?"Free account. Save history, share analyses."
+          :"Enter your email and we'll send a reset link."}
+        </div>
+
+        {err && <div className="msg-err">⚠ {err}</div>}
+        {msg && <div className="msg-ok">{msg}</div>}
+
+        <label className="field-label">Email</label>
+        <input className="field-input" type="email" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={onKey} placeholder="you@example.com" autoFocus/>
+
+        {mode!=="forgot" && <>
+          <label className="field-label">Password {mode==="signup"&&<span style={{color:"var(--tx3)"}}>(min 6 chars)</span>}</label>
+          <input className="field-input" type="password" value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={onKey} placeholder="••••••••"/>
+        </>}
+
+        <button className="auth-btn" onClick={go} disabled={loading||!email||(mode!=="forgot"&&!pass)}>
+          {loading
+            ?<span className="spin" style={{width:13,height:13,border:"2px solid rgba(0,0,0,.2)",borderTop:"2px solid #000",borderRadius:"50%",display:"inline-block"}}/>
+            :mode==="login"?"Sign In →":mode==="signup"?"Create Account →":"Send Reset Email"}
+        </button>
+
+        {mode==="login"&&<div className="auth-switch" style={{marginBottom:8}}><span onClick={()=>{setMode("forgot");setErr("");setMsg("");}}>Forgot password?</span></div>}
+        <div className="auth-switch">
+          {mode==="login"?<>No account? <span onClick={()=>{setMode("signup");setErr("");setMsg("");}}>Sign up free</span></>
+          :mode==="signup"?<>Have an account? <span onClick={()=>{setMode("login");setErr("");setMsg("");}}>Sign in</span></>
+          :<><span onClick={()=>{setMode("login");setErr("");setMsg("");}}>← Back to sign in</span></>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════
+   ANALYSIS BUBBLE
+   ════════════════════════════════════════════════ */
+function AnalysisBubble({data,msgId,sessionId,copied,onCopy,onTxt,onPrint,onShare,shareUrl,shareLoading}){
+  const [showShare,setShowShare] = useState(false);
+  const iCls={error:"ie",warning:"iw",suspicious:"is",info:"ii"};
+  const iClr={error:"#fca5a5",warning:"#fcd34d",suspicious:"#d8b4fe",info:"#67e8f9"};
+  const iIcon={error:"✖",warning:"▲",suspicious:"◈",info:"◆"};
+  const impCls={Critical:"ch-crit",High:"ch-high",Medium:"ch-med",Low:"ch-low"};
+  const fCls={Immediate:"fi","Short-term":"fs","Long-term":"fl"};
+  const fClr={Immediate:"#fca5a5","Short-term":"#fcd34d","Long-term":"#86efac"};
+
+  return(
+    <div className="bub-ai">
+      <div className="sec"><div className="sec-lbl">📋 Summary</div>
+        <p style={{fontSize:12.5,color:"var(--tx)",lineHeight:1.75}}>{data.summary}</p>
+      </div>
+
+      <div className="sec"><div className="sec-lbl">📊 Assessment</div>
+        <div className="chips">
+          <span className={`chip ${impCls[data.impactLevel]||"ch-low"}`}>Impact: {data.impactLevel}</span>
+          <span className="chip ch-conf">Confidence: {data.confidenceLevel}</span>
+        </div>
+        <p style={{fontSize:10,color:"var(--tx3)",margin:"4px 0 8px"}}>{data.impactReason}</p>
+        {data.technologiesDetected?.length>0&&<div className="chips">{data.technologiesDetected.map(t=><span key={t} className="chip ch-tech">{t}</span>)}</div>}
+      </div>
+
+      {data.keyIssues?.length>0&&<div className="sec"><div className="sec-lbl">🔍 Key Issues ({data.keyIssues.length})</div>
+        {data.keyIssues.map((iss,i)=>(
+          <div key={i} className={`issue ${iCls[iss.type]||"ii"}`}>
+            <div className="i-hd">
+              <span style={{color:iClr[iss.type]||"#67e8f9",fontSize:10}}>{iIcon[iss.type]||"◆"}</span>
+              <span className="i-tp" style={{color:iClr[iss.type]||"#67e8f9"}}>{iss.type}</span>
+              <span className="i-tl">{iss.title}</span>
+            </div>
+            <div className="i-ds">{iss.description}</div>
+            {iss.lineHint&&<code className="i-cd">{iss.lineHint}</code>}
+          </div>
+        ))}
+      </div>}
+
+      <div className="sec"><div className="sec-lbl">🎯 Root Cause</div>
+        <p style={{fontSize:12,color:"var(--tx2)",lineHeight:1.7}}>{data.rootCause}</p>
+      </div>
+
+      {data.stepByStep?.length>0&&<div className="sec"><div className="sec-lbl">📖 Step-by-Step</div>
+        {data.stepByStep.map(s=>(
+          <div key={s.step} className="step">
+            <div className="step-n">{s.step}</div>
+            <div><div className="step-t">{s.title}</div><div className="step-d">{s.detail}</div></div>
+          </div>
+        ))}
+      </div>}
+
+      {data.suggestedFixes?.length>0&&<div className="sec"><div className="sec-lbl">🔧 Suggested Fixes</div>
+        {data.suggestedFixes.map((f,i)=>(
+          <div key={i} className={`fix ${fCls[f.priority]||"fl"}`}>
+            <div className="fix-p" style={{color:fClr[f.priority]||"#86efac"}}>{f.priority}</div>
+            <div className="fix-a">{f.action}</div>
+            <div className="fix-r">{f.reason}</div>
+          </div>
+        ))}
+      </div>}
+
+      {data.preventiveRecommendations?.length>0&&<div className="sec"><div className="sec-lbl">🛡 Prevention</div>
+        {data.preventiveRecommendations.map((p,i)=>(
+          <div key={i} className="prev-i"><span style={{color:"var(--green)",flexShrink:0}}>✓</span><span>{p}</span></div>
+        ))}
+      </div>}
+
+      {data.timeline&&<div className="sec"><div className="sec-lbl">⏱ Timeline</div>
+        <p style={{fontSize:11,color:"var(--tx2)",lineHeight:1.8,whiteSpace:"pre-wrap"}}>{data.timeline}</p>
+      </div>}
+
+      {data.suspiciousPatterns?.length>0&&<div className="sec"><div className="sec-lbl">🚨 Suspicious Patterns</div>
+        {data.suspiciousPatterns.map((p,i)=><div key={i} className="susp-i"><span>⚠</span><span>{p}</span></div>)}
+      </div>}
+
+      <div className="exp-row">
+        <button className="exp-btn" onClick={onTxt}>📄 Download</button>
+        <button className="exp-btn" onClick={onPrint}>🖨 Print</button>
+        <button className={`exp-btn ${copied===msgId?"copied":""}`} onClick={onCopy}>{copied===msgId?"✓ Copied":"📋 Copy"}</button>
+        {sessionId&&<button className={`exp-btn ${showShare?"share-on":""}`}
+          onClick={()=>{setShowShare(v=>!v);if(!showShare&&!shareUrl)onShare();}}>
+          {shareLoading?"⏳":"🔗"} Share
+        </button>}
+      </div>
+
+      {showShare&&<div className="share-box">
+        <div style={{fontSize:10,color:"var(--purple)",fontWeight:600,marginBottom:3}}>🔗 Share this analysis</div>
+        <div style={{fontSize:10,color:"var(--tx3)",marginBottom:6}}>Anyone with this link can view — read only, no login needed.</div>
+        {shareUrl
+          ?<div className="share-row"><input readOnly value={shareUrl}/><button onClick={()=>navigator.clipboard.writeText(shareUrl)}>Copy</button></div>
+          :<div style={{fontSize:10,color:"var(--tx3)"}}>{shareLoading?"Generating link…":"Click Share again to generate."}</div>
+        }
+      </div>}
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════
+   SIDEBAR
+   ════════════════════════════════════════════════ */
+function Sidebar({sessions,activeId,onSelect,onNew,onDelete,user,onLogout,model,setModel,onResetSetup}){
+  return(
+    <div className="sidebar">
+      <div className="sb-hd">
+        <div className="sb-li">⬡</div>
+        <div><div className="sb-ln">Log<span style={{color:"var(--accent)"}}>Mind</span></div>
+          <div className="sb-ls">AI Log Interpreter</div></div>
+      </div>
+      <button className="sb-new" onClick={onNew}><span style={{fontSize:15}}>＋</span> New Analysis</button>
+      {sessions.length>0&&<div className="sb-sec">Recent Sessions</div>}
+      <div className="sb-list">
+        {sessions.length===0&&<div className="sb-empty">No sessions yet.<br/>Paste logs below to start.</div>}
+        {sessions.map(s=>(
+          <div key={s.id} className={`sb-item ${s.id===activeId?"active":""}`} onClick={()=>onSelect(s)}>
+            <span style={{fontSize:11,flexShrink:0}}>📋</span>
+            <span className="sb-item-txt">{s.title}</span>
+            {s.is_shared&&<span className="sb-shared">shared</span>}
+            <button className="sb-del" onClick={e=>{e.stopPropagation();onDelete(s.id);}}>✕</button>
+          </div>
+        ))}
+      </div>
+      <div className="sb-bot">
+        <div className="sb-user">
+          <div className="sb-av">{(user?.email||"?")[0].toUpperCase()}</div>
+          <div className="sb-em">{user?.email}</div>
+          <button className="sb-lo" onClick={onLogout}>Out</button>
+        </div>
+        <label className="sb-lbl">AI Model</label>
+        <select className="sb-sel" value={model} onChange={e=>setModel(e.target.value)}>
+          {MODELS.map(m=><option key={m} value={m}>{m}</option>)}
+        </select>
+        <div className="sb-note">
+          🆓 Gemini · 1500 req/day free<br/>
+          💾 History saved to Supabase<br/>
+          <span style={{color:"var(--accent)",cursor:"pointer",textDecoration:"underline"}} onClick={onResetSetup}>⚙ Change API keys</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════
+   DELETE MODAL
+   ════════════════════════════════════════════════ */
+function DeleteModal({onConfirm,onCancel,busy}){
+  return(
+    <div className="modal-bg">
+      <div className="modal">
+        <div className="modal-t">Delete this session?</div>
+        <div className="modal-s">This permanently removes the session and all messages from your history.</div>
+        <div className="modal-btns">
+          <button className="mbtn" onClick={onCancel}>Cancel</button>
+          <button className="mbtn danger" onClick={onConfirm} disabled={busy}>{busy?"Deleting…":"Delete"}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════
+   SHARED VIEW (public read-only)
+   ════════════════════════════════════════════════ */
+function SharedView({sessionId}){
+  const [sess,setSess]   = useState(null);
+  const [loading,setLoading] = useState(true);
+  const [err,setErr]     = useState("");
+
+  useEffect(()=>{
+    (async()=>{
+      const sb = getSB();
+      if(!sb){setErr("App not configured yet.");setLoading(false);return;}
+      const {data,error} = await sb.from("sessions").select("*").eq("id",sessionId).eq("is_shared",true).single();
+      if(error||!data){setErr("Analysis not found or not shared publicly.");setLoading(false);return;}
+      setSess(data);setLoading(false);
+    })();
+  },[sessionId]);
+
+  if(loading) return<div className="loader"><div className="spin" style={{width:20,height:20,border:"2px solid var(--bdr2)",borderTop:"2px solid var(--accent)",borderRadius:"50%"}}/><div style={{fontSize:11,color:"var(--tx3)"}}>Loading shared analysis…</div></div>;
+  if(err) return<div className="loader" style={{color:"var(--red)",fontSize:12}}>⚠ {err}</div>;
+
+  return(
+    <div style={{minHeight:"100vh",background:"var(--bg)"}}>
+      <div className="shared-banner">
+        <span>🔗</span>
+        <span>Shared via <b>LogMind</b> — read only ·&nbsp;
+          <a href={window.location.origin+window.location.pathname}>Open LogMind</a>
+        </span>
+      </div>
+      <div style={{maxWidth:740,margin:"28px auto",padding:"0 20px"}}>
+        <h2 style={{fontFamily:"'Syne',sans-serif",fontSize:18,marginBottom:5}}>{sess.title}</h2>
+        <p style={{fontSize:10,color:"var(--tx3)",marginBottom:22}}>Analyzed on {new Date(sess.created_at).toLocaleString()}</p>
+        {(sess.messages||[]).filter(m=>m.role==="assistant"&&m.data).map((m,i)=>(
+          <div key={i} style={{marginBottom:20}}>
+            <AnalysisBubble data={m.data} msgId={m.id} copied={null}
+              onCopy={()=>navigator.clipboard.writeText(toText(m.data))}
+              onTxt={()=>{const b=new Blob([toText(m.data)],{type:"text/plain"});const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="logmind.txt";a.click();}}
+              onPrint={()=>{const w=window.open("","_blank");w.document.write(`<pre style="font-family:monospace;padding:2rem;white-space:pre-wrap;max-width:860px;margin:auto">${toText(m.data).replace(/</g,"&lt;")}</pre>`);w.document.close();w.print();}}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════
+   MAIN APP
+   ════════════════════════════════════════════════ */
+function App(){
+  // Detect shared link
+  const sharedId = useMemo(()=>new URLSearchParams(window.location.search).get("share"),[]);
+
+  // Setup state
+  const isSetup = () => !!(localStorage.getItem(LS_SUPA_URL)&&localStorage.getItem(LS_SUPA_KEY)&&localStorage.getItem(LS_GEMINI));
+  const [configured,setConfigured] = useState(isSetup);
+  const [user,setUser]             = useState(null);
+  const [authChecked,setAuthChecked] = useState(false);
+
+  // Chat state
+  const [sessions,setSessions]   = useState([]);
+  const [activeSession,setActive] = useState(null);
+  const [messages,setMessages]   = useState([]);
+  const [input,setInput]         = useState("");
+  const [loading,setLoading]     = useState(false);
+  const [lang,setLang]           = useState("English");
+  const [customLang,setCustomLang] = useState("");
+  const [model,setModel]         = useState("gemini-1.5-flash");
+  const [copied,setCopied]       = useState(null);
+  const [delTarget,setDelTarget] = useState(null);
+  const [delBusy,setDelBusy]     = useState(false);
+  const [shareUrls,setShareUrls] = useState({});
+  const [shareLoad,setShareLoad] = useState({});
+
+  const endRef  = useRef();
+  const taRef   = useRef();
+  const fileRef = useRef();
+  const effLang = lang==="Custom" ? customLang||"English" : lang;
+
+  // Auth listener
+  useEffect(()=>{
+    if(!configured) return;
+    const sb = getSB();
+    if(!sb) return;
+    sb.auth.getSession().then(({data:{session}})=>{setUser(session?.user||null);setAuthChecked(true);});
+    const {data:{subscription}} = sb.auth.onAuthStateChange((_,session)=>setUser(session?.user||null));
+    return ()=>subscription.unsubscribe();
+  },[configured]);
+
+  useEffect(()=>{ if(user) loadSessions(); },[user]);
+  useEffect(()=>{ endRef.current?.scrollIntoView({behavior:"smooth"}); },[messages]);
+
+  const loadSessions = async () => {
+    const sb = getSB(); if(!sb||!user) return;
+    const {data} = await sb.from("sessions").select("id,title,is_shared,created_at")
+      .eq("user_id",user.id).order("created_at",{ascending:false}).limit(60);
+    if(data) setSessions(data);
+  };
+
+  const selectSession = async sess => {
+    setActive(sess);
+    const sb = getSB(); if(!sb) return;
+    const {data} = await sb.from("sessions").select("messages").eq("id",sess.id).single();
+    setMessages(data?.messages||[]);
+  };
+
+  const newChat = () => { setActive(null); setMessages([]); setInput(""); };
 
   const handleFile = e => {
-    const f = e.target.files[0];
-    if (!f) return;
-    if (f.size > MAX) { setError("File too large. Max 100KB."); return; }
+    const f = e.target.files[0]; if(!f) return;
+    if(f.size>MAX){alert("File too large. Max 500KB.");return;}
     const r = new FileReader();
-    r.onload = ev => { setLogs(ev.target.result); setCharCount(ev.target.result.length); };
-    r.readAsText(f);
+    r.onload = ev => setInput(ev.target.result);
+    r.readAsText(f); e.target.value="";
   };
 
-  const handleAnalyze = async () => {
-    if (ollamaStatus !== "online") { setError("Ollama is not running. Please start Ollama first. See setup guide below."); return; }
-    if (!logs.trim()) { setError("Please paste or upload logs first."); return; }
-    if (logs.length > MAX) { setError("Logs too large. Max 100KB."); return; }
-    setError(""); setResult(null); setLoading(true);
+  const send = async () => {
+    const txt = input.trim();
+    if(!txt||loading) return;
+    if(txt.length>MAX){alert("Log too large. Max 500KB.");return;}
+
+    const uid = Date.now()+"u";
+    const userMsg  = {id:uid, role:"user", content:txt};
+    const thinkMsg = {id:Date.now()+"t", role:"thinking"};
+    setMessages(prev=>[...prev, userMsg, thinkMsg]);
+    setInput(""); setLoading(true);
+    if(taRef.current) taRef.current.style.height="50px";
+
     try {
-      const r = await analyzeWithOllama(logs.slice(0,MAX), effLang, ollamaHost, model);
-      setResult(r);
+      const data = await callGemini(txt.slice(0,MAX), effLang, model);
+      const aiMsg = {id:Date.now()+"a", role:"assistant", data};
+
+      setMessages(prev=>{
+        const without = prev.filter(m=>m.role!=="thinking");
+        return [...without, aiMsg];
+      });
+
+      // Save to Supabase
+      const sb = getSB();
+      if(sb && user) {
+        const title = txt.slice(0,55).replace(/\n/g," ").trim()+(txt.length>55?"…":"");
+        setMessages(prev=>{
+          const finalMsgs = prev.filter(m=>m.role!=="thinking");
+          // We'll save inside this callback to get fresh state
+          if(activeSession) {
+            sb.from("sessions").update({messages:finalMsgs,updated_at:new Date().toISOString()}).eq("id",activeSession.id);
+          } else {
+            sb.from("sessions").insert({user_id:user.id,title,messages:finalMsgs,is_shared:false})
+              .select().single().then(({data:ns})=>{if(ns){setActive(ns);loadSessions();}});
+          }
+          return finalMsgs;
+        });
+        if(activeSession) setTimeout(loadSessions, 500);
+      }
     } catch(e) {
-      setError(e.message);
-    } finally { setLoading(false); }
+      const errMsg = {id:Date.now()+"e", role:"error", content:e.message};
+      setMessages(prev=>[...prev.filter(m=>m.role!=="thinking"), errMsg]);
+    }
+    setLoading(false);
   };
 
-  const handleCopy = () => {
-    if (!result) return;
-    navigator.clipboard.writeText(toText(result));
-    setCopied(true); setTimeout(()=>setCopied(false),2000);
+  const handleShare = async sid => {
+    setShareLoad(p=>({...p,[sid]:true}));
+    const sb = getSB(); if(sb) await sb.from("sessions").update({is_shared:true}).eq("id",sid);
+    const url = `${window.location.origin}${window.location.pathname}?share=${sid}`;
+    setShareUrls(p=>({...p,[sid]:url}));
+    setShareLoad(p=>({...p,[sid]:false}));
+    loadSessions();
   };
 
-  const downloadTxt = () => {
-    const b = new Blob([toText(result)],{type:"text/plain"});
-    const a = document.createElement("a");
-    a.href=URL.createObjectURL(b); a.download="logmind-analysis.txt"; a.click();
+  const handleDelete = async () => {
+    setDelBusy(true);
+    const sb = getSB(); if(sb) await sb.from("sessions").delete().eq("id",delTarget);
+    setSessions(p=>p.filter(s=>s.id!==delTarget));
+    if(activeSession?.id===delTarget) newChat();
+    setDelTarget(null); setDelBusy(false);
   };
 
-  const printPdf = () => {
-    const w = window.open("","_blank");
-    w.document.write(`<!DOCTYPE html><html><head><title>LogMind Analysis</title>
-    <style>body{font-family:monospace;padding:2rem;max-width:860px;margin:auto;line-height:1.6}
-    pre{white-space:pre-wrap;word-break:break-all;background:#f5f5f5;padding:1.5rem;border-radius:8px;font-size:13px}
-    h1{font-size:1.2rem;margin-bottom:1rem;color:#1e293b}</style></head>
-    <body><h1>LogMind — AI Log Analysis Report</h1><pre>${toText(result).replace(/</g,"&lt;").replace(/>/g,"&gt;")}</pre></body></html>`);
-    w.document.close(); w.print();
+  const handleLogout = async () => {
+    const sb = getSB(); if(sb) await sb.auth.signOut();
+    setUser(null); setSessions([]); newChat();
   };
 
-  return (
-    <div style={{minHeight:"100vh",position:"relative",zIndex:1}}>
+  const handleResetSetup = () => {
+    localStorage.removeItem(LS_SUPA_URL); localStorage.removeItem(LS_SUPA_KEY); localStorage.removeItem(LS_GEMINI);
+    resetSB(); setConfigured(false); setUser(null); setSessions([]); newChat();
+  };
 
-      {/* ── Header ── */}
-      <header style={{borderBottom:"1px solid var(--border)",background:"rgba(6,8,13,0.85)",backdropFilter:"blur(12px)",position:"sticky",top:0,zIndex:50}}>
-        <div style={{maxWidth:960,margin:"0 auto",padding:"0 20px",height:56,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-          <div style={{display:"flex",alignItems:"center",gap:12}}>
-            <div style={{width:32,height:32,borderRadius:8,background:"linear-gradient(135deg,var(--accent),#0891b2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,boxShadow:"0 0 16px rgba(0,229,255,0.3)"}}>
-              ⬡
-            </div>
-            <div>
-              <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:16,letterSpacing:"-.02em",color:"#fff"}}>
-                Log<span style={{color:"var(--accent)"}}>Mind</span>
-              </div>
-              <div style={{fontSize:9,color:"var(--muted)",letterSpacing:".15em",textTransform:"uppercase",marginTop:-2}}>Local AI · Zero Cost · Private</div>
-            </div>
+  const handleCopy = (data,id) => {
+    navigator.clipboard.writeText(toText(data));
+    setCopied(id); setTimeout(()=>setCopied(null),2000);
+  };
+  const handleTxt = data => {
+    const b=new Blob([toText(data)],{type:"text/plain"});const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="logmind-analysis.txt";a.click();
+  };
+  const handlePrint = data => {
+    const w=window.open("","_blank");
+    w.document.write(`<!DOCTYPE html><html><head><title>LogMind</title><style>body{font-family:monospace;padding:2rem;max-width:860px;margin:auto;line-height:1.7}pre{white-space:pre-wrap;word-break:break-all;background:#f4f4f4;padding:1.5rem;border-radius:8px;font-size:12px}</style></head><body><pre>${toText(data).replace(/</g,"&lt;").replace(/>/g,"&gt;")}</pre></body></html>`);
+    w.document.close();w.print();
+  };
+
+  const onKey    = e => { if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();} };
+  const onResize = e => { e.target.style.height="50px";e.target.style.height=Math.min(e.target.scrollHeight,200)+"px"; };
+
+  const SUGGS = [
+    {icon:"💳",title:"Payment Gateway",sub:"Stripe · PayPal · Razorpay",ex:"[ERROR] 2024-01-15 14:23:01 Stripe charge failed: card_declined\n  charge_id=ch_3abc reason=insufficient_funds amount=9999 currency=usd\n[WARN] Retry attempt 1/3 for customer cus_xyz123\n[ERROR] Webhook POST /webhooks/stripe → 503 timeout after 30s"},
+    {icon:"🐳",title:"Docker / Kubernetes",sub:"Container crash · OOMKilled · pod failure",ex:"2024-01-15T10:23:01Z WARN OOMKilled: container web-app in pod web-app-7d9f8b\n2024-01-15T10:23:02Z ERROR pod failed exit code 137\n2024-01-15T10:23:03Z INFO Back-off restarting failed container web-app"},
+    {icon:"🔐",title:"Security / Auth Log",sub:"SSH brute force · suspicious logins",ex:"Jan 15 14:22:01 server sshd[1234]: Failed password for root from 192.168.1.105 port 52341\nJan 15 14:22:02 server sshd[1235]: Failed password for root from 192.168.1.105 port 52342\nJan 15 14:22:10 server sshd[1236]: Accepted password for ubuntu from 10.0.0.5 port 22"},
+    {icon:"⚙️",title:"CI/CD Pipeline",sub:"GitHub Actions · Jenkins failure",ex:"2024-01-15 10:23:01 [INFO] Starting deployment pipeline\n2024-01-15 10:23:15 [ERROR] npm test failed: 3 tests failed\n  FAIL src/payment.test.js\n  AssertionError: expected 200 but received 500\n2024-01-15 10:23:16 [ERROR] Pipeline failed. Deployment blocked."},
+  ];
+
+  /* ── Render logic ── */
+  if(sharedId) return <SharedView sessionId={sharedId}/>;
+  if(!configured) return <SetupScreen onDone={()=>setConfigured(true)}/>;
+  if(!authChecked) return(
+    <div className="loader">
+      <div className="spin" style={{width:22,height:22,border:"2px solid var(--bdr2)",borderTop:"2px solid var(--accent)",borderRadius:"50%"}}/>
+      <div style={{fontSize:11,color:"var(--tx3)"}}>Connecting to Supabase…</div>
+    </div>
+  );
+  if(!user) return <AuthPage onAuth={setUser}/>;
+
+  return(
+    <div className="app">
+      {delTarget&&<DeleteModal onConfirm={handleDelete} onCancel={()=>setDelTarget(null)} busy={delBusy}/>}
+
+      <Sidebar sessions={sessions} activeId={activeSession?.id}
+        onSelect={selectSession} onNew={newChat} onDelete={id=>setDelTarget(id)}
+        user={user} onLogout={handleLogout}
+        model={model} setModel={setModel}
+        onResetSetup={handleResetSetup}/>
+
+      <div className="main">
+        {/* Header */}
+        <div className="main-hd">
+          <div className="main-title">
+            <span style={{flexShrink:0}}>📋</span>
+            <span>{activeSession?.title||"New Analysis"}</span>
           </div>
-
-          <div style={{display:"flex",alignItems:"center",gap:12}}>
-            <OllamaStatus status={ollamaStatus} models={availableModels} onRefresh={checkStatus}/>
-            <button onClick={()=>setShowSettings(!showSettings)} className="btn-ghost" style={{padding:"6px 12px"}}>
-              {showSettings?"✕ Close":"⚙ Settings"}
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <main style={{maxWidth:960,margin:"0 auto",padding:"32px 20px 80px"}}>
-
-        {/* ── Hero ── */}
-        <div className="fade-up" style={{textAlign:"center",paddingBottom:40}}>
-          <div className="tag" style={{background:"rgba(0,229,255,0.08)",border:"1px solid rgba(0,229,255,0.2)",color:"var(--accent)",marginBottom:16,display:"inline-flex"}}>
-            <span className="pulse-dot" style={{width:6,height:6,borderRadius:"50%",background:"var(--accent)",display:"inline-block"}}/>
-            &nbsp;Powered by Ollama · Runs 100% Locally · Free Forever
-          </div>
-          <h1 style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:"clamp(2rem,5vw,3.2rem)",lineHeight:1.1,letterSpacing:"-.03em",marginBottom:12}}>
-            <span style={{color:"#fff"}}>Understand any log.</span><br/>
-            <span style={{color:"var(--accent)"}}>Instantly. Privately.</span>
-          </h1>
-          <p style={{color:"var(--muted)",fontSize:13,maxWidth:520,margin:"0 auto",lineHeight:1.7}}>
-            Paste server, payment, security, CI/CD, or any log. Local AI explains it in plain language — no cloud, no cost, no data leaving your machine.
-          </p>
-        </div>
-
-        {/* ── Settings Panel ── */}
-        {showSettings && (
-          <div className="card fade-up" style={{marginBottom:20,padding:20}}>
-            <div style={{fontSize:11,fontWeight:600,letterSpacing:".12em",color:"var(--muted)",marginBottom:16,textTransform:"uppercase"}}>⚙ Ollama Settings</div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-              <div>
-                <label style={{fontSize:10,color:"var(--muted)",letterSpacing:".1em",display:"block",marginBottom:6}}>OLLAMA HOST</label>
-                <input value={ollamaHost} onChange={e=>setOllamaHost(e.target.value)}
-                  style={{width:"100%",padding:"9px 12px",fontSize:12,borderRadius:8}}/>
-              </div>
-              <div>
-                <label style={{fontSize:10,color:"var(--muted)",letterSpacing:".1em",display:"block",marginBottom:6}}>MODEL</label>
-                <select value={model} onChange={e=>setModel(e.target.value)}
-                  style={{width:"100%",padding:"9px 12px",fontSize:12,borderRadius:8,cursor:"pointer"}}>
-                  {availableModels.length > 0
-                    ? availableModels.map(m=><option key={m} value={m}>{m}</option>)
-                    : MODELS.map(m=><option key={m} value={m}>{m}</option>)
-                  }
-                </select>
-              </div>
-            </div>
-            <button onClick={checkStatus} className="btn-ghost" style={{marginTop:12,fontSize:11}}>↺ Test Connection</button>
-
-            {/* Setup guide */}
-            {ollamaStatus==="offline" && (
-              <div style={{marginTop:16,background:"rgba(245,158,11,0.08)",border:"1px solid rgba(245,158,11,0.2)",borderRadius:10,padding:16}}>
-                <div style={{fontSize:11,fontWeight:600,color:"var(--warn)",marginBottom:10,letterSpacing:".1em"}}>▲ OLLAMA NOT DETECTED — QUICK SETUP</div>
-                <div style={{fontSize:11,color:"#94a3b8",lineHeight:1.8}}>
-                  <b style={{color:"#e2e8f0"}}>1.</b> Download Ollama → <a href="https://ollama.com" target="_blank" style={{color:"var(--accent)"}}>ollama.com</a><br/>
-                  <b style={{color:"#e2e8f0"}}>2.</b> Install and open it (runs in background)<br/>
-                  <b style={{color:"#e2e8f0"}}>3.</b> Open terminal and run: <code style={{background:"rgba(0,0,0,0.4)",padding:"1px 8px",borderRadius:4,color:"#86efac"}}>ollama pull llama3</code><br/>
-                  <b style={{color:"#e2e8f0"}}>4.</b> Click ↺ Test Connection above<br/>
-                  <b style={{color:"#e2e8f0"}}>5.</b> For GitHub Pages: enable CORS with <code style={{background:"rgba(0,0,0,0.4)",padding:"1px 8px",borderRadius:4,color:"#86efac"}}>OLLAMA_ORIGINS=* ollama serve</code>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ── Input Card ── */}
-        <div className="card fade-up-1" style={{marginBottom:16}}>
-          <div style={{padding:"16px 20px",borderBottom:"1px solid var(--border)",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-            <div style={{display:"flex",alignItems:"center",gap:8}}>
-              <span style={{fontSize:11,fontWeight:600,letterSpacing:".12em",color:"var(--muted)",textTransform:"uppercase"}}>// Log Input</span>
-              <span className="blink" style={{color:"var(--accent)",fontSize:14}}>_</span>
-            </div>
-            <div style={{display:"flex",alignItems:"center",gap:10}}>
-              <span style={{fontSize:10,color:"var(--muted)"}}>{charCount.toLocaleString()} / {MAX.toLocaleString()}</span>
-              <button onClick={()=>{setLogs("");setResult(null);setError("");setCharCount(0);}} className="btn-ghost" style={{padding:"3px 10px",fontSize:10,color:"#ef4444",borderColor:"rgba(239,68,68,0.3)"}}>CLEAR</button>
-            </div>
-          </div>
-
-          <div style={{padding:20}}>
-            <textarea
-              value={logs}
-              onChange={e=>{setLogs(e.target.value);setCharCount(e.target.value.length);}}
-              placeholder={`Paste your logs here...\n\n# Supported formats:\n  Nginx · Apache · Docker · Kubernetes · Java stacktrace\n  Python traceback · Node.js · Payment gateway · Stripe\n  AWS CloudWatch · GitHub Actions · Security audit\n  PostgreSQL · MongoDB · Redis · Any custom log format`}
-              rows={11}
-              maxLength={MAX}
-              spellCheck={false}
-              style={{width:"100%",padding:"14px 16px",fontSize:11,lineHeight:1.7,resize:"vertical",borderRadius:10}}
-            />
-
-            <div style={{display:"flex",flexWrap:"wrap",gap:10,marginTop:12,alignItems:"center"}}>
-              <input ref={fileRef} type="file" accept=".txt,.log,.json,.xml" style={{display:"none"}} onChange={handleFile}/>
-              <button onClick={()=>fileRef.current.click()} className="btn-ghost" style={{display:"flex",alignItems:"center",gap:6}}>
-                <span>📁</span> Upload File
-                <span style={{color:"var(--muted)",fontSize:10}}>.txt .log .json</span>
-              </button>
-
-              <select value={lang} onChange={e=>setLang(e.target.value)}
-                style={{padding:"8px 12px",fontSize:11,borderRadius:8,cursor:"pointer"}}>
-                {LANGS.map(l=><option key={l.code} value={l.code}>{l.label}</option>)}
-              </select>
-
-              {lang==="custom" && (
-                <input value={customLang} onChange={e=>setCustomLang(e.target.value)}
-                  placeholder="e.g. Japanese" style={{padding:"8px 12px",fontSize:11,borderRadius:8,width:130}}/>
-              )}
-
-              <button onClick={handleAnalyze} disabled={loading||ollamaStatus!=="online"} className="btn-primary" style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:8}}>
-                {loading
-                  ? <><span className="spin" style={{width:12,height:12,border:"2px solid rgba(0,0,0,0.2)",borderTop:"2px solid #000",borderRadius:"50%",display:"inline-block"}}/>ANALYZING…</>
-                  : <><span>▶</span> ANALYZE LOGS</>
-                }
-              </button>
-            </div>
+          <div className="pills">
+            {activeSession?.is_shared&&<span className="pill p-purple">🔗 Shared</span>}
+            <span className="pill p-green">💾 Auto-saved</span>
+            <span className="pill p-blue">{model.replace("gemini-","g-")}</span>
           </div>
         </div>
 
-        {/* ── Error ── */}
-        {error && (
-          <div className="fade-up" style={{background:"rgba(239,68,68,0.08)",border:"1px solid rgba(239,68,68,0.25)",borderRadius:10,padding:"12px 16px",marginBottom:16,fontSize:12,color:"#fca5a5",display:"flex",gap:8}}>
-            <span>✖</span><span>{error}</span>
-          </div>
-        )}
-
-        {/* ── Loading skeleton ── */}
-        {loading && (
-          <div className="fade-up" style={{space:"y-3"}}>
-            <div style={{marginBottom:12,fontSize:11,color:"var(--accent)",letterSpacing:".15em",display:"flex",alignItems:"center",gap:8}}>
-              <span className="spin" style={{width:10,height:10,border:"1.5px solid rgba(0,229,255,0.2)",borderTop:"1.5px solid var(--accent)",borderRadius:"50%",display:"inline-block"}}/>
-              AI IS READING YOUR LOGS…
-            </div>
-            {[75,55,65,45,70].map((w,i)=>(
-              <div key={i} className="shimmer-bg" style={{height:14,borderRadius:4,marginBottom:8,width:`${w}%`,opacity:.6}}/>
-            ))}
-          </div>
-        )}
-
-        {/* ── Results ── */}
-        {result && !loading && (
-          <div style={{display:"flex",flexDirection:"column",gap:12}} className="fade-up">
-
-            {/* Summary hero */}
-            <div className="card noise" style={{padding:24,background:"linear-gradient(135deg,rgba(0,229,255,0.04),rgba(124,58,237,0.04))"}}>
-              <div style={{display:"flex",flexWrap:"wrap",gap:20,justifyContent:"space-between",alignItems:"flex-start"}}>
-                <div style={{flex:1,minWidth:240}}>
-                  <div style={{fontSize:9,letterSpacing:".2em",color:"var(--muted)",marginBottom:8,textTransform:"uppercase"}}>Analysis Summary</div>
-                  <p style={{fontSize:13,lineHeight:1.7,color:"#e2e8f0"}}>{result.summary}</p>
-                </div>
-                <div style={{display:"flex",flexDirection:"column",gap:12,alignItems:"flex-end"}}>
-                  <div style={{display:"flex",alignItems:"center",gap:8}}>
-                    <span style={{fontSize:10,color:"var(--muted)"}}>IMPACT</span>
-                    <ImpactBadge level={result.impactLevel}/>
-                  </div>
-                  <div style={{display:"flex",alignItems:"center",gap:8}}>
-                    <span style={{fontSize:10,color:"var(--muted)"}}>CONFIDENCE</span>
-                    <ConfidenceMeter level={result.confidenceLevel}/>
-                  </div>
-                </div>
-              </div>
-
-              {result.technologiesDetected?.length > 0 && (
-                <div style={{marginTop:16,display:"flex",flexWrap:"wrap",gap:6}}>
-                  {result.technologiesDetected.map(t=>(
-                    <span key={t} className="tag" style={{background:"var(--surface2)",border:"1px solid var(--border)",color:"var(--muted)",fontSize:9}}>{t}</span>
+        {/* Messages */}
+        <div className="msgs">
+          <div className="msgs-inner">
+            {messages.length===0?(
+              <div className="empty">
+                <div className="empty-g">⬡</div>
+                <h1 className="empty-h">LogMind</h1>
+                <p className="empty-p">
+                  Paste any log — payment, server, container, security, CI/CD.<br/>
+                  AI explains it clearly. History saved. Shareable links.
+                </p>
+                <div className="sg-grid">
+                  {SUGGS.map(s=>(
+                    <button key={s.title} className="sg-card" onClick={()=>setInput(s.ex)}>
+                      <div className="sg-icon">{s.icon}</div>
+                      <div className="sg-title">{s.title}</div>
+                      <div className="sg-sub">{s.sub}</div>
+                    </button>
                   ))}
                 </div>
-              )}
-            </div>
-
-            {/* Issues */}
-            {result.keyIssues?.length > 0 && (
-              <Collapsible title={`Key Issues Detected (${result.keyIssues.length})`} icon="🔍" defaultOpen accent>
-                {result.keyIssues.map((issue,i)=><IssueCard key={i} issue={issue}/>)}
-              </Collapsible>
-            )}
-
-            {/* Root Cause */}
-            <Collapsible title="Root Cause Analysis" icon="🎯" defaultOpen>
-              <p style={{fontSize:12,color:"#94a3b8",lineHeight:1.7,marginBottom:8}}>{result.rootCause}</p>
-              <p style={{fontSize:10,color:"var(--muted)",fontStyle:"italic"}}>{result.impactReason}</p>
-            </Collapsible>
-
-            {/* Step by Step */}
-            {result.stepByStep?.length > 0 && (
-              <Collapsible title="Step-by-Step Explanation" icon="📖" defaultOpen>
-                {result.stepByStep.map(s=><StepItem key={s.step} s={s}/>)}
-              </Collapsible>
-            )}
-
-            {/* Fixes */}
-            {result.suggestedFixes?.length > 0 && (
-              <Collapsible title="Suggested Fixes" icon="🔧">
-                {result.suggestedFixes.map((f,i)=><FixCard key={i} fix={f}/>)}
-              </Collapsible>
-            )}
-
-            {/* Prevention */}
-            {result.preventiveRecommendations?.length > 0 && (
-              <Collapsible title="Preventive Recommendations" icon="🛡">
-                <ul style={{listStyle:"none",paddingLeft:0}}>
-                  {result.preventiveRecommendations.map((p,i)=>(
-                    <li key={i} style={{display:"flex",gap:10,fontSize:12,color:"#94a3b8",marginBottom:10,lineHeight:1.6}}>
-                      <span style={{color:"var(--accent3)",flexShrink:0}}>✓</span>{p}
-                    </li>
-                  ))}
-                </ul>
-              </Collapsible>
-            )}
-
-            {/* Timeline */}
-            {result.timeline && (
-              <Collapsible title="Timeline Reconstruction" icon="⏱">
-                <p style={{fontSize:12,color:"#94a3b8",lineHeight:1.8,whiteSpace:"pre-wrap"}}>{result.timeline}</p>
-              </Collapsible>
-            )}
-
-            {/* Suspicious */}
-            {result.suspiciousPatterns?.length > 0 && (
-              <Collapsible title={`Suspicious Patterns (${result.suspiciousPatterns.length})`} icon="🚨">
-                {result.suspiciousPatterns.map((p,i)=>(
-                  <div key={i} style={{display:"flex",gap:8,fontSize:12,color:"#d8b4fe",marginBottom:8,padding:"8px 12px",background:"rgba(168,85,247,0.08)",borderRadius:6,border:"1px solid rgba(168,85,247,0.2)"}}>
-                    <span style={{flexShrink:0}}>⚠</span>{p}
+              </div>
+            ):(
+              messages.map(msg=>{
+                if(msg.role==="user") return(
+                  <div key={msg.id} className="row user">
+                    <div className="bub-user">
+                      <div className="bub-user-label">📋 Log submitted for analysis</div>
+                      <pre>{msg.content.length>300?msg.content.slice(0,300)+"…(truncated)":msg.content}</pre>
+                    </div>
                   </div>
-                ))}
-              </Collapsible>
+                );
+                if(msg.role==="thinking") return(
+                  <div key={msg.id} className="row ai">
+                    <div className="av av-ai">⬡</div>
+                    <div className="thinking">
+                      <span className="td da"/><span className="td db"/><span className="td dc"/>
+                      <span style={{marginLeft:6}}>Analyzing your logs…</span>
+                    </div>
+                  </div>
+                );
+                if(msg.role==="error") return(
+                  <div key={msg.id} className="row ai">
+                    <div className="av av-ai">⬡</div>
+                    <div className="bub-err">
+                      <span style={{color:"var(--red)",fontSize:11}}>✖ Error — </span>
+                      <span style={{color:"var(--tx2)",fontSize:12}}>{msg.content}</span>
+                    </div>
+                  </div>
+                );
+                if(msg.role==="assistant"&&msg.data) return(
+                  <div key={msg.id} className="row ai">
+                    <div className="av av-ai">⬡</div>
+                    <AnalysisBubble data={msg.data} msgId={msg.id}
+                      sessionId={activeSession?.id} copied={copied}
+                      onCopy={()=>handleCopy(msg.data,msg.id)}
+                      onTxt={()=>handleTxt(msg.data)}
+                      onPrint={()=>handlePrint(msg.data)}
+                      onShare={()=>handleShare(activeSession?.id)}
+                      shareUrl={shareUrls[activeSession?.id]}
+                      shareLoading={shareLoad[activeSession?.id]}/>
+                  </div>
+                );
+                return null;
+              })
             )}
+            <div ref={endRef}/>
+          </div>
+        </div>
 
-            {/* Export */}
-            <div className="card" style={{padding:20}}>
-              <div style={{fontSize:10,letterSpacing:".15em",color:"var(--muted)",marginBottom:14,textTransform:"uppercase"}}>Export Analysis</div>
-              <div style={{display:"flex",flexWrap:"wrap",gap:10}}>
-                <button onClick={downloadTxt} className="btn-ghost" style={{display:"flex",alignItems:"center",gap:6}}>
-                  <span>📄</span> Download TXT
-                </button>
-                <button onClick={printPdf} className="btn-ghost" style={{display:"flex",alignItems:"center",gap:6}}>
-                  <span>🖨</span> Print / PDF
-                </button>
-                <button onClick={handleCopy} className="btn-ghost" style={{
-                  display:"flex",alignItems:"center",gap:6,
-                  ...(copied?{borderColor:"rgba(16,185,129,0.4)",color:"var(--accent3)",background:"rgba(16,185,129,0.08)"}:{})
-                }}>
-                  <span>{copied?"✓":"📋"}</span> {copied?"Copied!":"Copy to Clipboard"}
-                </button>
+        {/* Input */}
+        <div className="inp-area">
+          <div className="inp-inner">
+            <div className="lang-row">
+              {LANGS.map(l=><button key={l} className={`lang-btn ${lang===l?"on":""}`} onClick={()=>setLang(l)}>{l}</button>)}
+              {lang==="Custom"&&<input className="lang-custom" value={customLang} onChange={e=>setCustomLang(e.target.value)} placeholder="e.g. Japanese"
+                style={{background:"var(--surf2)",border:"1px solid var(--bdr2)",color:"var(--tx)",fontSize:10,padding:"4px 10px",borderRadius:5,outline:"none"}}/>}
+            </div>
+            <div className="inp-box">
+              <textarea ref={taRef} className="inp-ta" value={input} disabled={loading}
+                onChange={e=>{setInput(e.target.value);onResize(e);}} onKeyDown={onKey}
+                placeholder="Paste your logs here… (Enter to analyze · Shift+Enter for new line · supports very long logs up to 500KB)"/>
+              <div className="inp-side">
+                <div>
+                  <input ref={fileRef} type="file" accept=".txt,.log,.json,.xml" style={{display:"none"}} onChange={handleFile}/>
+                  <button className="up-btn" onClick={()=>fileRef.current.click()} title="Upload log file">📁</button>
+                </div>
+                <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:5}}>
+                  <span className="cc">{input.length.toLocaleString()}/{MAX.toLocaleString()}</span>
+                  <button className="send-btn" onClick={send} disabled={loading||!input.trim()}>
+                    {loading
+                      ?<span className="spin" style={{width:13,height:13,border:"2px solid rgba(0,0,0,.2)",borderTop:"2px solid #000",borderRadius:"50%",display:"inline-block"}}/>
+                      :"↑"}
+                  </button>
+                </div>
               </div>
             </div>
+            <div className="inp-hint">💾 Auto-saved to Supabase · 🔗 Shareable · 🌍 Multi-language · 🆓 Gemini 1500 req/day free · 📄 500KB log limit</div>
           </div>
-        )}
-
-        {/* ── How it works (empty state) ── */}
-        {!result && !loading && (
-          <div className="fade-up-2" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:12,marginTop:8}}>
-            {[
-              {icon:"🔒",title:"100% Private",desc:"Logs never leave your machine. AI runs locally via Ollama."},
-              {icon:"⚡",title:"Zero Cost",desc:"No API keys, no subscriptions, no limits. Free forever."},
-              {icon:"🌐",title:"Any Log Format",desc:"Nginx, Docker, Stripe, AWS, Java, Python, K8s and more."},
-              {icon:"🌍",title:"Multi-language",desc:"Get analysis in English, Hindi, Spanish, German and more."},
-            ].map(c=>(
-              <div key={c.title} className="card" style={{padding:20,textAlign:"center"}}>
-                <div style={{fontSize:24,marginBottom:10}}>{c.icon}</div>
-                <div style={{fontSize:12,fontWeight:600,marginBottom:6,color:"#e2e8f0"}}>{c.title}</div>
-                <div style={{fontSize:11,color:"var(--muted)",lineHeight:1.6}}>{c.desc}</div>
-              </div>
-            ))}
-          </div>
-        )}
-      </main>
-
-      {/* ── Footer ── */}
-      <footer style={{borderTop:"1px solid var(--border)",padding:"20px",textAlign:"center",background:"rgba(6,8,13,0.6)"}}>
-        <p style={{fontSize:11,color:"var(--accent3)",fontWeight:600,marginBottom:4}}>
-          🔒 No logs stored. No data sent to cloud. Everything runs on your local machine.
-        </p>
-        <p style={{fontSize:10,color:"var(--muted)"}}>
-          LogMind · Powered by Ollama · Open Source · GitHub Ready
-        </p>
-      </footer>
+        </div>
+      </div>
     </div>
   );
 }
